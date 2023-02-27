@@ -10,6 +10,9 @@ import (
 
 func main() {
 	r := mux.NewRouter()
+	r.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("pong"))
+	}).Methods(http.MethodGet)
 	r.HandleFunc("/auth", auth.HandleAuth).Methods(http.MethodPost)
 
 	log.Println("Listening on :8080")
