@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/speakeasy-api/speakeasy-auth-test-service/internal/auth"
+	"github.com/speakeasy-api/speakeasy-auth-test-service/internal/requestbody"
 )
 
 func main() {
@@ -14,6 +15,7 @@ func main() {
 		_, _ = w.Write([]byte("pong"))
 	}).Methods(http.MethodGet)
 	r.HandleFunc("/auth", auth.HandleAuth).Methods(http.MethodPost)
+	r.HandleFunc("/requestbody", requestbody.HandleRequestBody).Methods(http.MethodPost)
 
 	log.Println("Listening on :8080")
 	if err := http.ListenAndServe(":8080", r); err != nil {
