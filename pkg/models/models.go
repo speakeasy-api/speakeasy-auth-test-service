@@ -22,7 +22,3 @@ type AuthRequest struct {
 	HeaderAuth []HeaderAuth `json:"headerAuth,omitempty"`
 	BasicAuth  *BasicAuth   `json:"basicAuth,omitempty"`
 }
-
-type BodyRequest struct {
-	ArrObjValue []any `json:"arrObjValue"`
-}
