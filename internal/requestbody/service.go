@@ -14,9 +14,15 @@ func HandleRequestBody(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var req interface{}
+	if err := json.Unmarshal(body, &req); err != nil {
+		utils.HandleError(w, err)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	if err := json.NewEncoder(w).Encode(body); err != nil {
+	if err := json.NewEncoder(w).Encode(req); err != nil {
 		utils.HandleError(w, err)
 	}
 }
