@@ -15,7 +15,7 @@ func main() {
 		_, _ = w.Write([]byte("pong"))
 	}).Methods(http.MethodGet)
 	r.HandleFunc("/auth", auth.HandleAuth).Methods(http.MethodPost)
-	r.HandleFunc("/requestbody", requestbody.HandleRequestBody).Methods(http.MethodPost)
+	r.HandleFunc("/requestbody/{*}", requestbody.HandleRequestBody).Methods(http.MethodPost)
 
 	log.Println("Listening on :8080")
 	if err := http.ListenAndServe(":8080", r); err != nil {
