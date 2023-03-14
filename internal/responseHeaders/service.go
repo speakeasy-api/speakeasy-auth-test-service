@@ -3,20 +3,14 @@ package responseHeaders
 import (
 	"encoding/json"
 	"github.com/speakeasy-api/speakeasy-auth-test-service/internal/utils"
-	"io"
 	"net/http"
 )
 
 func HandleVendorJsonResponseHeaders(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		utils.HandleError(w, err)
-		return
-	}
 
 	var obj interface{}
 
-	err = json.Unmarshal([]byte("{\"name\":\"Panda\"}"), &obj)
+	err := json.Unmarshal([]byte("{\"name\":\"Panda\"}"), &obj)
 	if err != nil {
 		utils.HandleError(w, err)
 		return
