@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/speakeasy-api/speakeasy-auth-test-service/internal/pagination"
 	"github.com/speakeasy-api/speakeasy-auth-test-service/internal/responseHeaders"
 	"log"
 	"net/http"
@@ -18,6 +19,8 @@ func main() {
 	r.HandleFunc("/auth", auth.HandleAuth).Methods(http.MethodPost)
 	r.HandleFunc("/requestbody", requestbody.HandleRequestBody).Methods(http.MethodPost)
 	r.HandleFunc("/vendorjson", responseHeaders.HandleVendorJsonResponseHeaders).Methods(http.MethodGet)
+	r.HandleFunc("/pagination/limitoffset/page", pagination.HandleLimitOffsetPage).Methods(http.MethodGet, http.MethodPut)
+	r.HandleFunc("/pagination/limitoffset/offset", pagination.HandleLimitOffsetOffset).Methods(http.MethodGet, http.MethodPut)
 
 	log.Println("Listening on :8080")
 	if err := http.ListenAndServe(":8080", r); err != nil {
