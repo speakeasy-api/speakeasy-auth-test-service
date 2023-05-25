@@ -21,9 +21,10 @@ func main() {
 	r.HandleFunc("/vendorjson", responseHeaders.HandleVendorJsonResponseHeaders).Methods(http.MethodGet)
 	r.HandleFunc("/pagination/limitoffset/page", pagination.HandleLimitOffsetPage).Methods(http.MethodGet, http.MethodPut)
 	r.HandleFunc("/pagination/limitoffset/offset", pagination.HandleLimitOffsetOffset).Methods(http.MethodGet, http.MethodPut)
+	r.HandleFunc("/pagination/cursor", pagination.HandleCursor).Methods(http.MethodGet, http.MethodPut)
 
-	log.Println("Listening on :8080")
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	log.Println("Listening on :35456")
+	if err := http.ListenAndServe(":35456", r); err != nil {
 		log.Fatal(err)
 	}
 }

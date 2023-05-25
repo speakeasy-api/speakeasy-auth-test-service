@@ -6,15 +6,19 @@ import (
 	"strconv"
 )
 
-type PaginationRequest struct {
+type LimitOffsetRequest struct {
 	Limit  int `json:"limit"`
 	Offset int `json:"offset"`
 	Page   int `json:"page"`
 }
 
+type CursorRequest struct {
+	Cursor int `json:"cursor"`
+}
+
 type PaginationResponse struct {
-	NumPages     int   `json:"numPages"`
-	ResultsArray []int `json:"resultsArray"`
+	NumPages    int   `json:"numPages"`
+	ResultArray []int `json:"resultArray"`
 }
 
 const total = 20
@@ -23,7 +27,7 @@ func HandleLimitOffsetPage(w http.ResponseWriter, r *http.Request) {
 	queryLimit := r.FormValue("limit")
 	queryPage := r.FormValue("page")
 
-	var pagination PaginationRequest
+	var pagination LimitOffsetRequest
 	hasBody := true
 	if err := json.NewDecoder(r.Body).Decode(&pagination); err != nil {
 		hasBody = false
@@ -38,19 +42,17 @@ func HandleLimitOffsetPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	start := (page - 1) * limit
-	if start > total {
-		w.WriteHeader(404)
-	}
 
 	res := PaginationResponse{
-		NumPages:     total / limit,
-		ResultsArray: make([]int, 0),
+		NumPages:    total / limit,
+		ResultArray: make([]int, 0),
 	}
 
-	for i := start; i < total && len(res.ResultsArray) < limit; i++ {
-		res.ResultsArray = append(res.ResultsArray, i)
+	for i := start; i < total && len(res.ResultArray) < limit; i++ {
+		res.ResultArray = append(res.ResultArray, i)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		w.WriteHeader(500)
@@ -61,11 +63,12 @@ func HandleLimitOffsetOffset(w http.ResponseWriter, r *http.Request) {
 	queryLimit := r.FormValue("limit")
 	queryOffset := r.FormValue("offset")
 
-	var pagination PaginationRequest
+	var pagination LimitOffsetRequest
 	hasBody := true
 	if err := json.NewDecoder(r.Body).Decode(&pagination); err != nil {
 		hasBody = false
 	}
+
 	limit, err := getValue(queryLimit, hasBody, pagination.Limit, w)
 	if err != nil {
 		return
@@ -75,19 +78,46 @@ func HandleLimitOffsetOffset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if offset > total {
-		w.WriteHeader(404)
+	res := PaginationResponse{
+		NumPages:    total / limit,
+		ResultArray: make([]int, 0),
+	}
+
+	for i := offset; i < total && len(res.ResultArray) < limit; i++ {
+		res.ResultArray = append(res.ResultArray, i)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		w.WriteHeader(500)
+	}
+}
+
+func HandleCursor(w http.ResponseWriter, r *http.Request) {
+	queryCursor := r.FormValue("cursor")
+
+	var pagination CursorRequest
+	hasBody := true
+	if err := json.NewDecoder(r.Body).Decode(&pagination); err != nil {
+		hasBody = false
+	}
+
+	cursor, err := getValue(queryCursor, hasBody, pagination.Cursor, w)
+	if err != nil {
+		return
 	}
 
 	res := PaginationResponse{
-		NumPages:     total / limit,
-		ResultsArray: make([]int, 0),
+		NumPages:    0,
+		ResultArray: make([]int, 0),
 	}
 
-	for i := offset; i < total && len(res.ResultsArray) < limit; i++ {
-		res.ResultsArray = append(res.ResultsArray, i)
+	for i := cursor + 1; i < total && len(res.ResultArray) < 15; i++ {
+		res.ResultArray = append(res.ResultArray, i)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		w.WriteHeader(500)
@@ -95,7 +125,7 @@ func HandleLimitOffsetOffset(w http.ResponseWriter, r *http.Request) {
 }
 
 func getValue(queryValue string, hasBody bool, paginationValue int, w http.ResponseWriter) (int, error) {
-	if hasBody && queryValue == "" {
+	if hasBody {
 		return paginationValue, nil
 	} else {
 		value, err := strconv.Atoi(queryValue)
