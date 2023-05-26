@@ -2,6 +2,7 @@ package pagination
 
 import (
 	"encoding/json"
+	"math"
 	"net/http"
 	"strconv"
 )
@@ -32,19 +33,16 @@ func HandleLimitOffsetPage(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&pagination); err != nil {
 		hasBody = false
 	}
-	limit, err := getValue(queryLimit, hasBody, pagination.Limit, w)
-	if err != nil {
-		return
+	limit := getValue(queryLimit, hasBody, pagination.Limit)
+	if limit == 0 {
+		limit = 20
 	}
-	page, err := getValue(queryPage, hasBody, pagination.Page, w)
-	if err != nil {
-		return
-	}
+	page := getValue(queryPage, hasBody, pagination.Page)
 
 	start := (page - 1) * limit
 
 	res := PaginationResponse{
-		NumPages:    total / limit,
+		NumPages:    int(math.Ceil(float64(total) / float64(limit))),
 		ResultArray: make([]int, 0),
 	}
 
@@ -53,7 +51,7 @@ func HandleLimitOffsetPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(res)
+	err := json.NewEncoder(w).Encode(res)
 	if err != nil {
 		w.WriteHeader(500)
 	}
@@ -69,17 +67,14 @@ func HandleLimitOffsetOffset(w http.ResponseWriter, r *http.Request) {
 		hasBody = false
 	}
 
-	limit, err := getValue(queryLimit, hasBody, pagination.Limit, w)
-	if err != nil {
-		return
+	limit := getValue(queryLimit, hasBody, pagination.Limit)
+	if limit == 0 {
+		limit = 20
 	}
-	offset, err := getValue(queryOffset, hasBody, pagination.Offset, w)
-	if err != nil {
-		return
-	}
+	offset := getValue(queryOffset, hasBody, pagination.Offset)
 
 	res := PaginationResponse{
-		NumPages:    total / limit,
+		NumPages:    int(math.Ceil(float64(total) / float64(limit))),
 		ResultArray: make([]int, 0),
 	}
 
@@ -88,7 +83,7 @@ func HandleLimitOffsetOffset(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(res)
+	err := json.NewEncoder(w).Encode(res)
 	if err != nil {
 		w.WriteHeader(500)
 	}
@@ -103,10 +98,7 @@ func HandleCursor(w http.ResponseWriter, r *http.Request) {
 		hasBody = false
 	}
 
-	cursor, err := getValue(queryCursor, hasBody, pagination.Cursor, w)
-	if err != nil {
-		return
-	}
+	cursor := getValue(queryCursor, hasBody, pagination.Cursor)
 
 	res := PaginationResponse{
 		NumPages:    0,
@@ -118,21 +110,20 @@ func HandleCursor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(res)
+	err := json.NewEncoder(w).Encode(res)
 	if err != nil {
 		w.WriteHeader(500)
 	}
 }
 
-func getValue(queryValue string, hasBody bool, paginationValue int, w http.ResponseWriter) (int, error) {
+func getValue(queryValue string, hasBody bool, paginationValue int) int {
 	if hasBody {
-		return paginationValue, nil
+		return paginationValue
 	} else {
 		value, err := strconv.Atoi(queryValue)
 		if err != nil {
-			w.WriteHeader(400)
-			return 0, err
+			return 0
 		}
-		return value, nil
+		return value
 	}
 }
